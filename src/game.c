@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "SDL.h"
 #include "SDL_image.h"
+#include "sprite.h"
+#include "mouse.h"
 #include "graphics.h"
 
 extern SDL_Surface *screen;

@@ -8,7 +8,7 @@
 # Object files.
 #
 
-OBJ = game.o graphics.o 
+OBJ = game.o graphics.o sprite.o mouse.o
 
 #
 # Compiler stuff -- adjust to your system.
@@ -45,8 +45,10 @@ count:
 # Dependencies.
 #
 
+mouse.o: mouse.c mouse.h graphics.h sprite.h
+sprite.o: sprite.c sprite.h graphics.h
 graphics.o: graphics.c graphics.h
-game.o: game.c graphics.h
+game.o: game.c graphics.h sprite.h mouse.h
 
 #
 # The default rule.

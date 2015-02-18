@@ -22,6 +22,4 @@ typedef struct vec2_s
 vec2_t vector2_add(vec2_t v1,vec2_t v2);
 vec2_t vector2_fast_add(vec2_t v1,vec2_t v2);
 
-
-
 #endif

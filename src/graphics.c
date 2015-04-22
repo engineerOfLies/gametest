@@ -18,7 +18,7 @@ ScreenData  S_Data;
 
 void Init_Graphics()
 {
-  Uint32 Vflags =  SDL_ANYFORMAT| SDL_HWSURFACE;
+  Uint32 Vflags =   SDL_ANYFORMAT| SDL_HWSURFACE;
     Uint32 HWflag = 0;
     SDL_Surface *temp;
     S_Data.xres = 1024;

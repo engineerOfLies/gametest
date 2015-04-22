@@ -9,6 +9,7 @@ void testEntTouch(Entity *self,Entity *other)
   {
     return;
   }
+  printf("boom\n");
   self->state = ES_DYING;
 }
 
@@ -36,10 +37,12 @@ void spawnTestEnt(int x, int y)
   ent->sprite = LoadSprite("images/giantbomb.png",32,32);
   ent->body = cpBodyNew(10,cpMomentForCircle(10, 16, 0, cpvzero));
   ent->update = updateTestEnt;
+  ent->touch = testEntTouch;
   ent->shape = cpCircleShapeNew(ent->body, 16, cpvzero);
   cpShapeSetLayers(ent->shape,CP_ALL_LAYERS);
   cpBodySetPos(ent->body, cpv(x,y));
-  cpBodySetUserData(ent->body, (const cpDataPointer)ent);
+  cpShapeSetCollisionType(ent->shape, 2);
+  cpShapeSetUserData(ent->shape, (const cpDataPointer)ent);
   AddBodyToLevelSpace(ent->body,ent->shape);
 }
 

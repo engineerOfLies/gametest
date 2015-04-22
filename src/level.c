@@ -6,21 +6,43 @@
 static Level __level;
 extern SDL_Surface *screen;
 
-int BeginTouch(cpArbiter *arb, struct cpSpace *space, void *data)
+
+int touch1to2(cpArbiter *arb, struct cpSpace *space, void *data)
 {
-  Entity *aEnt,*bEnt;
-  CP_ARBITER_GET_BODIES(arb, a, b);
-  if ((a)&&(b))
+  Entity * entB = NULL;
+  CP_ARBITER_GET_SHAPES(arb, b, a);
+  entB = cpShapeGetUserData(b);
+  if ((entB)&&(entB->touch))
   {
-    aEnt = (Entity*)cpBodyGetUserData(a);
-    bEnt = (Entity*)cpBodyGetUserData(b);
-    if ((aEnt) && (aEnt->touch))
-    {
-      aEnt->touch(aEnt,bEnt);
-    }
+    entB->touch(entB,NULL);
   }
   return 1;
 }
+
+int touch2to2(cpArbiter *arb, struct cpSpace *space, void *data)
+{
+  Entity * entA = NULL;
+  Entity * entB = NULL;
+  CP_ARBITER_GET_SHAPES(arb, a, b);
+  entA = cpShapeGetUserData(a);
+  entB = cpShapeGetUserData(b);
+  if ((entA)&&(entA->touch))
+  {
+    entA->touch(entA,entB);
+  }
+  if ((entB)&&(entB->touch))
+  {
+    entB->touch(entB,entA);
+  }
+  return 1;
+}
+
+int touchany(cpArbiter *arb, struct cpSpace *space, void *data)
+{
+  printf("touch ?????\n");
+  return 1;
+}
+
 
 void LoadLevel(char *filename)
 {
@@ -147,9 +169,31 @@ void LoadLevel(char *filename)
   }
   __level.space = cpSpaceNew();
   cpSpaceSetGravity(__level.space, cpv(0,0.9));
+
   cpSpaceSetDefaultCollisionHandler(
     __level.space,
-    BeginTouch,
+    touchany,
+    NULL,
+    NULL,
+    NULL,
+    
+    NULL
+  );
+  
+  cpSpaceAddCollisionHandler(
+    __level.space,
+    2,2,
+    touch2to2,
+    NULL,
+    NULL,
+    NULL,
+    
+    NULL
+  );
+  cpSpaceAddCollisionHandler(
+    __level.space,
+    2,1,
+    touch1to2,
     NULL,
     NULL,
     NULL,
@@ -221,11 +265,11 @@ void InitLevelSystem()
 void addEdgeToSpace(cpSpace *space,int x1,int y1,int x2,int y2)
 {
   cpShape *edge = NULL;
-  printf("setting up edge (%i, %i) (%i,%i)\n",x1,y1,x2,y2);
   edge = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(x1,y1), cpv(x2,y2),1);
   edge->e = 0;
   edge->u = 0;
-  edge->collision_type = 0;
+  cpShapeSetCollisionType(edge, 1);
+  cpShapeSetUserData(edge,NULL);
   cpShapeSetLayers(edge,CP_ALL_LAYERS);
   cpSpaceAddShape(space, edge);
 }
@@ -241,7 +285,6 @@ void addTileToSpace(cpSpace *space,int x,int y,int w,int h)
 void SetupTilePhysics()
 {
   int j,i;
-  cpVect p;
   if (!__level.space)return;
   if (!__level.tileMap)return;
   for (j = 0;j < __level.tileHeight;++j)
@@ -254,8 +297,6 @@ void SetupTilePhysics()
       }
     }
   }
-  p = cpBodyGetPos(cpSpaceGetStaticBody(__level.space));
-  fprintf(stdout,"world position: %f,%f\n",p.x,p.y);
 }
 
 void AddBodyToLevelSpace(cpBody *body,cpShape *shape)

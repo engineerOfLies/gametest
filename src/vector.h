@@ -8,7 +8,7 @@
  */
 typedef struct vec2_s
 {
-  Sfloat64 x,y;
+  double x,y;
 }vec2_t;
 
 /**

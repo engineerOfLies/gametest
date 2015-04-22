@@ -1,16 +1,19 @@
 #include <stdlib.h>
-#include "SDL.h"
-#include "SDL_image.h"
+#include <SDL.h>
+#include <SDL_image.h>
 #include "sprite.h"
 #include "mouse.h"
 #include "level.h"
 #include "graphics.h"
+#include "entity.h"
+#include "testent.h"
 
 extern SDL_Surface *screen;
 extern SDL_Surface *buffer; /*pointer to the draw buffer*/
 extern SDL_Rect Camera;
 
 void Init_All();
+void HandleInput();
 
 int getImagePathFromFile(char *filepath,char * filename);
 int getCoordinatesFromFile(int *x, int *y,char * filename);
@@ -26,11 +29,11 @@ int main(int argc, char *argv[])
   int keyn;
   int i;
   int tx = 0,ty = 0;
+  SDLMod mods;
   Uint8 *keys;
   Init_All();
   tile = LoadSprite("images/32_32_16_2sprite.png",32,32);
   getCoordinatesFromFile(&tx, &ty,"config.ini");
-  fprintf(stdout,"x and y: (%i, %i)\n",tx,ty);
   addCoordinateToFile("config.ini",7,11);
   if(tile != NULL)
   {
@@ -41,22 +44,40 @@ int main(int argc, char *argv[])
   }
   done = 0;
   LoadLevel("levels/testlevel.txt");
+  SetupTilePhysics();
   do
   {
+    UpdateLevel();
+    updateEntityList();
     ResetBuffer ();
     DrawLevel();
+    drawEntityList(screen);
     DrawMouse();
     NextFrame();
     SDL_PumpEvents();
     keys = SDL_GetKeyState(&keyn);
-    if(keys[SDLK_ESCAPE])done = 1;
+    mods = SDL_GetModState();
+    if((keys[SDLK_F4])&&(mods & KMOD_ALT))done = 1;
+    HandleInput();
   }while(!done);
   exit(0);		/*technically this will end the program, but the compiler likes all functions that can return a value TO return a value*/
   return 0;
 }
 
+void HandleInput()
+{
+  Uint8 buttons;
+  int x,y;
+  buttons = SDL_GetMouseState(&x,&y);
+  if (buttons)
+  {
+    spawnTestEnt(x, y);
+  }
+}
+
 void CleanUpAll()
 {
+  closeEntityList();
   CloseSprites();
   /*any other cleanup functions can be added here*/ 
 }
@@ -66,6 +87,7 @@ void Init_All()
   Init_Graphics();
   InitLevelSystem();
   InitMouse();
+  initEntityList();
   atexit(CleanUpAll);
 }
 
@@ -144,11 +166,9 @@ int getCoordinatesFromFile(int *x, int *y,char * filename)
     }
     while (fscanf(fileptr,"%s",buf) != EOF)
     {
-        fprintf(stdout,"buf is: %s\n",buf);
         if (strcmp(buf,"position:")==0)
         {
             fscanf(fileptr,"%i %i",&tx,&ty);
-            fprintf(stdout,"as read: %i, %i\n",tx,ty);
             returnValue = 0;
         }
     }

@@ -8,7 +8,7 @@
 # Object files.
 #
 
-OBJ = game.o graphics.o sprite.o mouse.o level.o
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
 #
 # Compiler stuff -- adjust to your system.
@@ -19,7 +19,7 @@ OBJ = game.o graphics.o sprite.o mouse.o level.o
 CC     = gcc
 SDL_CFLAGS = `sdl-config --cflags`
 SDL_LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_ttf -lSDL_mixer
-LFLAGS = -g -o ../gametest
+LFLAGS = -g -o ../gametest -lchipmunk
 CFLAGS = -g -Wall -pedantic
 
 #

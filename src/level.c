@@ -1,9 +1,26 @@
 #include "level.h"
+#include "entity.h"
 #include <string.h>
 #include <stdio.h>
 
 static Level __level;
 extern SDL_Surface *screen;
+
+int BeginTouch(cpArbiter *arb, struct cpSpace *space, void *data)
+{
+  Entity *aEnt,*bEnt;
+  CP_ARBITER_GET_BODIES(arb, a, b);
+  if ((a)&&(b))
+  {
+    aEnt = (Entity*)cpBodyGetUserData(a);
+    bEnt = (Entity*)cpBodyGetUserData(b);
+    if ((aEnt) && (aEnt->touch))
+    {
+      aEnt->touch(aEnt,bEnt);
+    }
+  }
+  return 1;
+}
 
 void LoadLevel(char *filename)
 {
@@ -105,14 +122,14 @@ void LoadLevel(char *filename)
   temp = LoadSprite(bgimagepath,w,h);
   if (!temp)
   {
-    fprintf(stdout,"LoadLevel: ERROR, could NOT (FUCK YOU CARAMEL) open sprite file: %s\n",bgimagepath);
+    fprintf(stdout,"LoadLevel: ERROR, could NOT open sprite file: %s\n",bgimagepath);
     free(maptemp);
     return;
   }
   temp2 = LoadSprite(tilesetpath,tsw,tsh);
   if (!temp)
   {
-    fprintf(stdout,"LoadLevel: ERROR, could NOT (FUCK YOU CARAMEL) open sprite file: %s\n",tilesetpath);
+    fprintf(stdout,"LoadLevel: ERROR, could NOT open sprite file: %s\n",tilesetpath);
     FreeSprite(temp);/*cleanup*/
     free(maptemp);
     return;
@@ -124,6 +141,21 @@ void LoadLevel(char *filename)
   __level.tileMap = maptemp;
   __level.tileWidth = tw;
   __level.tileHeight = th;
+  if (__level.space != NULL)
+  {
+    cpSpaceFree(__level.space);
+  }
+  __level.space = cpSpaceNew();
+  cpSpaceSetGravity(__level.space, cpv(0,0.9));
+  cpSpaceSetDefaultCollisionHandler(
+    __level.space,
+    BeginTouch,
+    NULL,
+    NULL,
+    NULL,
+    
+    NULL
+  );
 }
 
 void DrawLevel()
@@ -173,6 +205,11 @@ void CloseLevel()
     free(__level.tileMap);
     __level.tileMap = NULL;
   }
+  if (__level.space != NULL)
+  {
+    cpSpaceFree(__level.space);
+    __level.space = NULL;
+  }
 }
 
 void InitLevelSystem()
@@ -181,6 +218,68 @@ void InitLevelSystem()
   atexit(CloseLevel);
 }
 
+void addEdgeToSpace(cpSpace *space,int x1,int y1,int x2,int y2)
+{
+  cpShape *edge = NULL;
+  printf("setting up edge (%i, %i) (%i,%i)\n",x1,y1,x2,y2);
+  edge = cpSegmentShapeNew(cpSpaceGetStaticBody(space), cpv(x1,y1), cpv(x2,y2),1);
+  edge->e = 0;
+  edge->u = 0;
+  edge->collision_type = 0;
+  cpShapeSetLayers(edge,CP_ALL_LAYERS);
+  cpSpaceAddShape(space, edge);
+}
 
+void addTileToSpace(cpSpace *space,int x,int y,int w,int h)
+{
+  addEdgeToSpace(space,x,y,x+w,y);
+  addEdgeToSpace(space,x,y,x,y+h);
+  addEdgeToSpace(space,x+w,y,x+w,y+h);
+  addEdgeToSpace(space,x,y+h,x+w,y+h);
+}
+
+void SetupTilePhysics()
+{
+  int j,i;
+  cpVect p;
+  if (!__level.space)return;
+  if (!__level.tileMap)return;
+  for (j = 0;j < __level.tileHeight;++j)
+  {
+    for (i = 0;i < __level.tileWidth;++i)
+    {
+      if (__level.tileMap[(j * __level.tileWidth) + i] > 0)
+      {
+        addTileToSpace(__level.space,i * 32,j*32,__level.tileSet->h,__level.tileSet->h);
+      }
+    }
+  }
+  p = cpBodyGetPos(cpSpaceGetStaticBody(__level.space));
+  fprintf(stdout,"world position: %f,%f\n",p.x,p.y);
+}
+
+void AddBodyToLevelSpace(cpBody *body,cpShape *shape)
+{
+  if (!body)return;
+  if (!shape)return;
+  if (!__level.space)return;
+  cpSpaceAddBody(__level.space,body);
+  cpSpaceAddShape(__level.space,shape);
+}
+
+void UpdateLevel()
+{
+  int i;
+  if (!__level.space)return;
+  for (i = 0; i < 100;++i)
+  {
+    cpSpaceStep(__level.space, 0.01);
+  }
+}
+
+cpSpace *GetLevelSpace()
+{
+  return __level.space;
+}
 
 /*eol@eof*/

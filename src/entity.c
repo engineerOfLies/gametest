@@ -1,12 +1,13 @@
 #include "entity.h"
 
+void deleteEntity(Entity *ent);
 
 Entity * __entityList = NULL;
-int __MaxEntities = 0;
+int __MaxEntities = 100;
 
 void initEntityList()
 {
-    // load entity config from file...
+    /* load entity config from file...*/
     __entityList = (Entity *)malloc(sizeof(Entity)*__MaxEntities);
     if (__entityList == NULL)
     {
@@ -17,28 +18,96 @@ void initEntityList()
     memset(__entityList,0,sizeof(Entity)*__MaxEntities);
 }
 
-void closeEntityList();
-void drawEntityList();
-void updateEntityList();
-void thinkEntityList();
+void closeEntityList()
+{
+  int i;
+  for (i = 0;i < __MaxEntities;++i)
+  {
+    deleteEntity(&__entityList[i]);
+  }
+}
+
+void drawEntityList(SDL_Surface * surface)
+{
+  int i;
+  for (i = 0;i < __MaxEntities;++i)
+  {
+    if (!__entityList[i].inuse)
+    {
+      continue;
+    }
+    DrawSprite(
+      __entityList[i].sprite,
+      surface,
+      __entityList[i].position.x,
+      __entityList[i].position.y,
+      __entityList[i].frame);
+  }
+}
+
+void updateEntityList()
+{
+  int i;
+  for (i = 0;i < __MaxEntities;++i)
+  {
+    if ((!__entityList[i].inuse)||(!__entityList[i].update))
+    {
+      continue;
+    }
+    __entityList[i].update(&__entityList[i]);
+  }
+}
+
+void thinkEntityList()
+{
+  int i;
+  for (i = 0;i < __MaxEntities;++i)
+  {
+    if ((!__entityList[i].inuse)||(!__entityList[i].think))
+    {
+      continue;
+    }
+    __entityList[i].think(&__entityList[i]);
+  }
+}
 
 Entity *newEntity()
 {
-    for (i = 0; i < __MaxEntities; i++)
+  int i;
+  for (i = 0; i < __MaxEntities; i++)
+  {
+    if (__entityList[i].inuse == 0)
     {
-        if (__entityList[i].used == 0)
-        {
-            __entityList[i].used = 1;
-            return &__entityList[i];
-        }
+      __entityList[i].inuse = 1;
+      return &__entityList[i];
     }
-    return NULL;
+  }
+  return NULL;
+}
+
+void deleteEntity(Entity *ent)
+{
+  /*handle freeing resources like Sprite data*/
+  if (ent->sprite != NULL)
+  {
+    FreeSprite(ent->sprite);
+  }
+  if (ent->shape != NULL)
+  {
+    cpSpaceRemoveShape(GetLevelSpace(), ent->shape);
+    cpShapeFree(ent->shape);
+  }
+  if (ent->body != NULL)
+  {
+    cpSpaceRemoveBody(GetLevelSpace(), ent->body);
+    cpBodyFree(ent->body);
+  }
+  memset(ent,0,sizeof(Entity));
 }
 
 void freeEntity(Entity **ent)
 {
-    //handle freeing resources like Sprite data
-    memset(*ent,0,sizeof(Entity));
+  deleteEntity(*ent);
     *ent = NULL;
 }
 

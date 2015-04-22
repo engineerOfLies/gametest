@@ -18,7 +18,7 @@ ScreenData  S_Data;
 
 void Init_Graphics()
 {
-    Uint32 Vflags = SDL_FULLSCREEN | SDL_ANYFORMAT;
+  Uint32 Vflags =  SDL_ANYFORMAT| SDL_HWSURFACE;
     Uint32 HWflag = 0;
     SDL_Surface *temp;
     S_Data.xres = 1024;
@@ -40,12 +40,11 @@ void Init_Graphics()
         exit(1);
     }
     atexit(SDL_Quit);
-        if(SDL_VideoModeOK(1024, 768, 32, SDL_FULLSCREEN | SDL_ANYFORMAT | SDL_HWSURFACE))
+        if(SDL_VideoModeOK(1024, 768, 32, Vflags))
     {
         S_Data.xres = 1024;
         S_Data.yres = 768;
         S_Data.depth = 32;
-        Vflags = SDL_FULLSCREEN | SDL_ANYFORMAT | SDL_HWSURFACE;
         HWflag = SDL_HWSURFACE;
     }
     else if(SDL_VideoModeOK(1024, 768, 16, SDL_FULLSCREEN | SDL_ANYFORMAT | SDL_HWSURFACE))

@@ -57,10 +57,10 @@ Sprite *LoadSprite(char *filename,int sizex, int sizey)
     fprintf(stderr,"unable to load a vital sprite: %s\n",SDL_GetError());
     exit(0);
   }
-  SpriteList[i].image = SDL_DisplayFormatAlpha(temp);
+  SpriteList[i].image = SDL_DisplayFormat(temp);
   SDL_FreeSurface(temp);
   /*sets a transparent color for blitting.*/
-  SDL_SetColorKey(SpriteList[i].image, SDL_SRCCOLORKEY , SDL_MapRGB(SpriteList[i].image->format, 255,255,255));
+  SDL_SetColorKey(SpriteList[i].image, SDL_SRCCOLORKEY , SDL_MapRGB(SpriteList[i].image->format, 0,0,0));
   /*then copy the given information to the sprite*/
   strncpy(SpriteList[i].filename,filename,20);
   /*now sprites don't have to be 16 frames per line, but most will be.*/
@@ -157,6 +157,7 @@ void CloseSprites()
 void DrawSprite(Sprite *sprite,SDL_Surface *surface,int sx,int sy, int frame)
 {
   SDL_Rect src,dest;
+  if ((!sprite)||(!surface))return;
   src.x = frame%sprite->framesperline * sprite->w;
   src.y = frame/sprite->framesperline * sprite->h;
   src.w = sprite->w;

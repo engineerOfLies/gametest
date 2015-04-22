@@ -1,6 +1,7 @@
 #ifndef __LEVEL__
 #define __LEVEL__
 
+#include <chipmunk/chipmunk.h>
 #include "sprite.h"
 
 #define LEVELNAMELEN 80
@@ -16,6 +17,8 @@ typedef struct
   int *tileMap; /**<allocated tilemap data*/
   int  tileWidth; /**<width of tiles for tile data*/
   int  tileHeight;/**< height of tile for tile data*/
+  
+  cpSpace *space;/**<chipmunk physics space*/
 }Level;
 
 
@@ -40,4 +43,11 @@ void CloseLevel();
  * @brief sets up level system to a clean state
  */
 void InitLevelSystem();
+
+void AddBodyToLevelSpace(cpBody *body,cpShape *shape);
+void SetupTilePhysics();
+void UpdateLevel();
+
+cpSpace *GetLevelSpace();
+
 #endif

@@ -1,4 +1,5 @@
 #include "entity.h"
+#include "level.h"
 
 void deleteEntity(Entity *ent);
 
@@ -39,8 +40,8 @@ void drawEntityList(SDL_Surface * surface)
     DrawSprite(
       __entityList[i].sprite,
       surface,
-      __entityList[i].position.x,
-      __entityList[i].position.y,
+      __entityList[i].position.x + __entityList[i].drawOffset.x,
+      __entityList[i].position.y + __entityList[i].drawOffset.y,
       __entityList[i].frame);
   }
 }

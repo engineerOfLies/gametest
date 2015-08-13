@@ -114,7 +114,7 @@ void LoadLevel(char *filename)
     maptemp = (int *)malloc(sizeof(int)*tw*th);
     if (maptemp == NULL)
     {
-      fprintf(stdout,"LoadLevel: ERROR, could NOT (FUCK YOU CARAMEL) allocate map data: FUCK\n");
+      fprintf(stdout,"LoadLevel: ERROR, could NOT allocate map data\n");
       return;
     }
     rewind(levelfile);

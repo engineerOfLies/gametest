@@ -18,6 +18,7 @@ typedef struct entity_s
     int frame;
     EntStates state;
     vec2_t position;
+    vec2_t drawOffset;
     vec2_t velocity;
     SDL_Rect bbox;
     float radius;

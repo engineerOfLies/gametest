@@ -2,6 +2,7 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "graphics.h"
+#include <string>
 
 extern SDL_Surface *screen;
 extern SDL_Surface *buffer; /*pointer to the draw buffer*/
@@ -22,22 +23,19 @@ int main(int argc, char *argv[])
   SDL_Surface *bg;
   Sprite *tile;
   int done;
-  int keyn;
   int i;
   int mx,my;
   int tx = 0,ty = 0;
-  Uint8 *keys;
+  const Uint8 *keys;
   char imagepath[512];
   Init_All();
   if (getImagePathFromFile(imagepath,"config.ini") == 0)
   {
     temp = IMG_Load(imagepath);/*notice that the path is part of the filename*/
   }
-  if(temp != NULL)						/*ALWAYS check your pointers before you use them*/
-    bg = SDL_DisplayFormat(temp);
   SDL_FreeSurface(temp);
-  if(bg != NULL)
-    SDL_BlitSurface(bg,NULL,buffer,NULL);
+  if(temp != NULL)
+    SDL_BlitSurface(temp,NULL,buffer,NULL);
   tile = LoadSprite("images/32_32_16_2sprite.png",32,32);
   getCoordinatesFromFile(&tx, &ty,"config.ini");
   fprintf(stdout,"x and y: (%i, %i)\n",tx,ty);
@@ -56,7 +54,7 @@ int main(int argc, char *argv[])
     DrawMouse();
     NextFrame();
     SDL_PumpEvents();
-    keys = SDL_GetKeyState(&keyn);
+    keys = SDL_GetKeyboardState(NULL);
     if(SDL_GetMouseState(&mx,&my))
     {
       DrawSprite(tile,buffer,(mx /32) * 32,(my /32) * 32,0); 

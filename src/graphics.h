@@ -63,10 +63,6 @@ typedef struct Sprite_T
   int used;					/*used by the maintanenc functions to keep track of how many times a single sprite is being used*/
 }Sprite;
 
-typedef struct	/*this didn't need to be its own type, its only used once*/
-{
-    int xres,yres,depth;
-}ScreenData;
 
 void Init_Graphics();
 void DrawPixel(SDL_Surface *screen, Uint8 R, Uint8 G, Uint8 B, int x, int y);

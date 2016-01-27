@@ -4,7 +4,8 @@
 #include "graphics.h"
 
 #define MaxSprites    255
-
+#include <string>
+#include "math.h"
 struct
 {
 	Uint32 state;
@@ -13,9 +14,9 @@ struct
 	Uint16  x, y;
 }Mouse;
 
-SDL_Surface *screen; /*pointer to the draw buffer*/
+SDL_Window *window; /*pointer to the window handler */
 SDL_Surface *buffer; /*pointer to the background image buffer*/
-SDL_Surface *videobuffer; /*pointer to the actual video surface*/
+SDL_Surface *videobuffer; /*pointer to the draw buffer*/
 SDL_Rect Camera; /*x & y are the coordinates for the background map, w and h are of the screen*/
 Sprite SpriteList[MaxSprites];
 Sprite *Msprite;
@@ -24,16 +25,14 @@ Uint32 NOW;					/*the current time since program started*/
 
 /*some data on the video settings that can be useful for a lot of functions*/
 Uint32 rmask,gmask,bmask,amask;
-ScreenData  S_Data;
 
 
 void Init_Graphics()
 {
-    Uint32 Vflags = SDL_FULLSCREEN | SDL_ANYFORMAT;
-    Uint32 HWflag = 0;
-    SDL_Surface *temp;
-    S_Data.xres = 1024;
-    S_Data.yres = 768;
+    Uint32 Vflags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
+	const char *game_name = "Gametest Application";
+    int xres = 1024;
+    int yres = 768;
     #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
@@ -45,78 +44,48 @@ void Init_Graphics()
     bmask = 0x00ff0000;
     amask = 0xff000000;
     #endif
-    if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_DOUBLEBUF) < 0 )
+	SDL_Window *window = NULL;
+    if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 )
     {
         fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
         exit(1);
     }
     atexit(SDL_Quit);
-        if(SDL_VideoModeOK(1024, 768, 32, SDL_FULLSCREEN | SDL_ANYFORMAT | SDL_HWSURFACE))
+
+	//Attempt to create the window with OpenGL first
+    if((window = SDL_CreateWindow(game_name, 0, 0, xres, yres, Vflags)))
     {
-        S_Data.xres = 1024;
-        S_Data.yres = 768;
-        S_Data.depth = 32;
-        Vflags = SDL_FULLSCREEN | SDL_ANYFORMAT | SDL_HWSURFACE;
-        HWflag = SDL_HWSURFACE;
+       printf("Window Creation Successful with OpenGL rendering.\n");
     }
-    else if(SDL_VideoModeOK(1024, 768, 16, SDL_FULLSCREEN | SDL_ANYFORMAT | SDL_HWSURFACE))
+	//Otherwise allow the system to decide the rendering pipeline API
+    else if((window = SDL_CreateWindow(game_name, 0, 0, 1024, 768, SDL_WINDOW_SHOWN)))
     {
-        S_Data.xres = 1024;
-        S_Data.yres = 768;
-        S_Data.depth = 16;
-        Vflags = SDL_FULLSCREEN | SDL_ANYFORMAT | SDL_HWSURFACE;
-        HWflag = SDL_HWSURFACE;
+       printf("Window Creation Successful with hardware rendering.\n");
     }
-    else if(SDL_VideoModeOK(1024, 768, 16, SDL_FULLSCREEN | SDL_ANYFORMAT))
-    {
-        S_Data.xres = 1024;
-        S_Data.yres = 768;
-        S_Data.depth = 16;
-        Vflags = SDL_FULLSCREEN | SDL_ANYFORMAT;
-        HWflag = SDL_SWSURFACE;
-    }
-    videobuffer = SDL_SetVideoMode(S_Data.xres, S_Data.yres,S_Data.depth, Vflags);
+	//Save a pointer to the surface of the window
+    videobuffer = SDL_GetWindowSurface(window);
     if ( videobuffer == NULL )
     {
         fprintf(stderr, "Unable to set 1024x768 video: %s\n", SDL_GetError());
         exit(1);
     }
-    temp = SDL_CreateRGBSurface(SDL_HWSURFACE, S_Data.xres, S_Data.yres, S_Data.depth,rmask, gmask,bmask,amask);
-    if(temp == NULL)
-	  {
-        fprintf(stderr,"Couldn't initialize background buffer: %s\n", SDL_GetError());
-        exit(1);
-	  }
-    /* Just to make sure that the surface we create is compatible with the screen*/
-    screen = SDL_DisplayFormat(temp);
-    SDL_FreeSurface(temp);
-    temp = SDL_CreateRGBSurface(Vflags, 2048, 768, S_Data.depth,rmask, gmask,bmask,amask);
-    if(temp == NULL)
-	  {
-        fprintf(stderr,"Couldn't initialize Video buffer: %s\n", SDL_GetError());
-        exit(1);
-	  }
-    buffer = SDL_DisplayFormat(temp);
-    SDL_FreeSurface(temp);
     Camera.x = 0;
     Camera.y = 0;
-    Camera.w = screen->w;/*we want to make sure that our camera is the same size of the video screen*/
-    Camera.h = screen->h;
+    Camera.w = videobuffer->w;/*we want to make sure that our camera is the same size of the video screen*/
+    Camera.h = videobuffer->h;
     SDL_ShowCursor(SDL_DISABLE);/*don't show the mouse */
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
 
 void ResetBuffer()
 {
-    SDL_BlitSurface(buffer,&Camera,screen,NULL);
+    SDL_BlitSurface(buffer,&Camera,videobuffer,NULL);
 }
 
 void NextFrame()
 {
   Uint32 Then;
-  SDL_BlitSurface(screen,NULL,videobuffer,NULL);/*copy everything we did to the video surface*/
-  SDL_Flip(videobuffer);							/*and then update the screen*/
+  SDL_UpdateWindowSurface(window);				/*update the screen using the videobuffer*/
   Then = NOW;									/*these next few lines  are used to show how long each frame takes to update.  */
   NOW = SDL_GetTicks();
 /*  fprintf(stdout,"Ticks passed this frame: %i\n", NOW - Then);*/
@@ -171,10 +140,9 @@ Sprite *LoadSprite(char *filename,int sizex, int sizey)
     fprintf(stderr,"unable to load a vital sprite: %s\n",SDL_GetError());
     exit(0);
   }
-  SpriteList[i].image = SDL_DisplayFormat(temp);
-  SDL_FreeSurface(temp);
+  SpriteList[i].image = temp;
   /*sets a transparent color for blitting.*/
-  SDL_SetColorKey(SpriteList[i].image, SDL_SRCCOLORKEY , SDL_MapRGB(SpriteList[i].image->format, 255,255,255));
+  SDL_SetColorKey(SpriteList[i].image, SDL_TRUE , SDL_MapRGB(SpriteList[i].image->format, 255,255,255));
    /*then copy the given information to the sprite*/
   strncpy(SpriteList[i].filename,filename,20);
       /*now sprites don't have to be 16 frames per line, but most will be.*/
@@ -218,10 +186,9 @@ Sprite *LoadSwappedSprite(char *filename,int sizex, int sizey, int c1, int c2, i
         fprintf(stderr, "FAILED TO LOAD A VITAL Sprite.\n");
         exit(1);
   }
-  SpriteList[i].image = SDL_DisplayFormat(temp);
-  SDL_FreeSurface(temp);
+  SpriteList[i].image = temp;
   /*sets a transparent color for blitting.*/
-  SDL_SetColorKey(SpriteList[i].image, SDL_SRCCOLORKEY , SDL_MapRGB(SpriteList[i].image->format, 255,255,255));
+  SDL_SetColorKey(SpriteList[i].image, SDL_TRUE , SDL_MapRGB(SpriteList[i].image->format, 255,255,255));
   //fprintf(stderr,"asked for colors: %d,%d,%d \n",c1,c2,c3);
   SwapSprite(SpriteList[i].image,c1,c2,c3);
    /*then copy the given information to the sprite*/
@@ -342,7 +309,6 @@ void DrawPixel(SDL_Surface *screen, Uint8 R, Uint8 G, Uint8 B, int x, int y)
     {
         SDL_UnlockSurface(screen);
     }
-    SDL_UpdateRect(screen, x, y, 1, 1);
 }
 
 
@@ -450,7 +416,7 @@ Uint32 SetColor(Uint32 color, int newcolor1,int newcolor2, int newcolor3)
     Uint8 r,g,b;
     Uint8 intensity;
     int newcolor;
-    SDL_GetRGB(color, screen->format, &r, &g, &b);
+    SDL_GetRGB(color, videobuffer->format, &r, &g, &b);
     if((r == 0) && (g == 0)&&(b !=0))
     {
         intensity = b;
@@ -485,114 +451,114 @@ Uint32 SetColor(Uint32 color, int newcolor1,int newcolor2, int newcolor3)
             b = intensity;
             break;
         case Yellow:
-            r = (Uint8)intensity * 0.7;
-            g = (Uint8)intensity * 0.7;
+            r = (Uint8)(intensity * 0.7);
+            g = (Uint8)(intensity * 0.7);
             b = 0;
             break;
         case Orange:
-            r = (Uint8)intensity * 0.9;
-            g = (Uint8)intensity * 0.4;
-            b = (Uint8)intensity * 0.1;
+            r = (Uint8)(intensity * 0.9);
+            g = (Uint8)(intensity * 0.4);
+            b = (Uint8)(intensity * 0.1);
             break;
         case Violet:
-            r = (Uint8)intensity * 0.7;
+            r = (Uint8)(intensity * 0.7);
             g = 0;
-            b = (Uint8)intensity * 0.7;
+            b = (Uint8)(intensity * 0.7);
             break;
         case Brown:
-            r = (Uint8)intensity * 0.6;
-            g = (Uint8)intensity * 0.3;
-            b = (Uint8)intensity * 0.15;
+            r = (Uint8)(intensity * 0.6);
+            g = (Uint8)(intensity * 0.3);
+            b = (Uint8)(intensity * 0.15);
             break;
         case Grey:
-            r = (Uint8)intensity * 0.5;
-            g = (Uint8)intensity * 0.5;
-            b = (Uint8)intensity * 0.5;
+            r = (Uint8)(intensity * 0.5);
+            g = (Uint8)(intensity * 0.5);
+            b = (Uint8)(intensity * 0.5);
             break;
         case DarkRed:
-            r = (Uint8)intensity * 0.5;
+            r = (Uint8)(intensity * 0.5);
             g = 0;
             b = 0;
             break;
         case DarkGreen:
             r = 0;
-            g = (Uint8)intensity * 0.5;
+            g = (Uint8)(intensity * 0.5);
             b = 0;
             break;
         case DarkBlue:
             r = 0;
             g = 0;
-            b = (Uint8)intensity * 0.5;
+            b = (Uint8)(intensity * 0.5);
             break;
         case DarkYellow:
-            r = (Uint8)intensity * 0.4;
-            g = (Uint8)intensity * 0.4;
+            r = (Uint8)(intensity * 0.4);
+            g = (Uint8)(intensity * 0.4);
             b = 0;
             break;
         case DarkOrange:
-            r = (Uint8)intensity * 0.6;
-            g = (Uint8)intensity * 0.2;
-            b = (Uint8)intensity * 0.1;
+            r = (Uint8)(intensity * 0.6);
+            g = (Uint8)(intensity * 0.2);
+            b = (Uint8)(intensity * 0.1);
             break;
         case DarkViolet:
-            r = (Uint8)intensity * 0.4;
+            r = (Uint8)(intensity * 0.4);
             g = 0;
-            b = (Uint8)intensity * 0.4;
+            b = (Uint8)(intensity * 0.4);
             break;
         case DarkBrown:
-            r = (Uint8)intensity * 0.2;
-            g = (Uint8)intensity * 0.1;
-            b = (Uint8)intensity * 0.05;
+            r = (Uint8)(intensity * 0.2);
+            g = (Uint8)(intensity * 0.1);
+            b = (Uint8)(intensity * 0.05);
             break;
         case DarkGrey:
-            r = (Uint8)intensity * 0.3;
-            g = (Uint8)intensity * 0.3;
-            b = (Uint8)intensity * 0.3;
+            r = (Uint8)(intensity * 0.3);
+            g = (Uint8)(intensity * 0.3);
+            b = (Uint8)(intensity * 0.3);
             break;
         case LightRed:
             r = intensity;
-            g = (Uint8)intensity * 0.45;
-            b = (Uint8)intensity * 0.45;
+            g = (Uint8)(intensity * 0.45);
+            b = (Uint8)(intensity * 0.45);
             break;
         case LightGreen:
-            r = (Uint8)intensity * 0.45;
+            r = (Uint8)(intensity * 0.45);
             g = intensity;
-            b = (Uint8)intensity * 0.45;
+            b = (Uint8)(intensity * 0.45);
             break;
         case LightBlue:
-            r = (Uint8)intensity * 0.45;
+            r = (Uint8)(intensity * 0.45);
             b = intensity;
-            g = (Uint8)intensity * 0.45;
+            g = (Uint8)(intensity * 0.45);
             break;
         case LightYellow:
             r = intensity;
             g = intensity;
-            b = (Uint8)intensity * 0.45;
+            b = (Uint8)(intensity * 0.45);
             break;
         case LightOrange:
             r = intensity;
-            g = (Uint8)intensity * 0.75;
-            b = (Uint8)intensity * 0.35;
+            g = (Uint8)(intensity * 0.75);
+            b = (Uint8)(intensity * 0.35);
             break;
         case LightViolet:
             r = intensity;
-            g = (Uint8)intensity * 0.45;
+            g = (Uint8)(intensity * 0.45);
             b = intensity;
             break;
         case LightBrown:
             r = intensity;
-            g = (Uint8)intensity * 0.85;
-            b = (Uint8)intensity * 0.45;
+            g = (Uint8)(intensity * 0.85);
+            b = (Uint8)(intensity * 0.45);
             break;
         case LightGrey:
-            r = (Uint8)intensity * 0.85;
-            g = (Uint8)intensity * 0.85;
-            b = (Uint8)intensity * 0.85;
+            r = (Uint8)(intensity * 0.85);
+            g = (Uint8)(intensity * 0.85);
+            b = (Uint8)(intensity * 0.85);
             break;
         case Black:
-            r = (Uint8)intensity * 0.15;
-            g = (Uint8)intensity * 0.15;
-            b = (Uint8)intensity * 0.15;
+            r = (Uint8)(intensity * 0.15);
+            g = (Uint8)(intensity * 0.15);
+            b = (Uint8)(intensity * 0.15);
             break;
         case White:
             r = intensity;
@@ -601,36 +567,36 @@ Uint32 SetColor(Uint32 color, int newcolor1,int newcolor2, int newcolor3)
             break;
         case Tan:
             r = intensity;
-            g = (Uint8)intensity * 0.9;
-            b = (Uint8)intensity * 0.6;
+            g = (Uint8)(intensity * 0.9);
+            b = (Uint8)(intensity * 0.6);
             break;
         case Gold:
-            r = (Uint8)intensity * 0.8;
-            g = (Uint8)intensity * 0.7;
-            b = (Uint8)intensity * 0.2;
+            r = (Uint8)(intensity * 0.8);
+            g = (Uint8)(intensity * 0.7);
+            b = (Uint8)(intensity * 0.2);
             break;
         case Silver:
-            r = (Uint8)intensity * 0.95;
-            g = (Uint8)intensity * 0.95;
+            r = (Uint8)(intensity * 0.95);
+            g = (Uint8)(intensity * 0.95);
             b = intensity;
             break;
         case YellowGreen:
-            r = (Uint8)intensity * 0.45;
-            g = (Uint8)intensity * 0.75;
-            b = (Uint8)intensity * 0.2;
+            r = (Uint8)(intensity * 0.45);
+            g = (Uint8)(intensity * 0.75);
+            b = (Uint8)(intensity * 0.2);
             break;
         case Cyan:
             r = 0;
-            g = (Uint8)intensity * 0.85;
-            b = (Uint8)intensity * 0.85;
+            g = (Uint8)(intensity * 0.85);
+            b = (Uint8)(intensity * 0.85);
             break;
         case Magenta:
-            r = (Uint8)intensity * 0.7;
+            r = (Uint8)(intensity * 0.7);
             g = 0;
-            b = (Uint8)intensity * 0.7;
+            b = (Uint8)(intensity * 0.7);
             break;
     }
-    return SDL_MapRGB(screen->format,r,g,b);
+    return SDL_MapRGB(videobuffer->format,r,g,b);
 }
 
 /* This will probably never have to be called, returns the hex code for the
@@ -742,7 +708,7 @@ void SwapSprite(SDL_Surface *sprite,int color1,int color2,int color3)
 void InitMouse()
 {
   Msprite = LoadSprite("images/mouse.png",16, 16);
-  if(Msprite == NULL)fprintf(stdout,"mouse didn't load\n");
+  if(Msprite == NULL)fprintf(stdout,"mouse didn't load: %s\n", SDL_GetError());
   Mouse.state = 0;
   Mouse.shown = 0;
   Mouse.frame = 0;
@@ -755,7 +721,7 @@ void DrawMouse()
 {
   int mx,my;
   SDL_GetMouseState(&mx,&my);
-  if(Msprite != NULL) DrawSprite(Msprite,screen,mx,my,Mouse.frame);
+  if(Msprite != NULL) DrawSprite(Msprite,videobuffer,mx,my,Mouse.frame);
   Mouse.frame = (Mouse.frame + 1)%16;
  Mouse.x = mx;
  Mouse.y = my;

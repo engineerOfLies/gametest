@@ -12,7 +12,7 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 
-/*uint32*/
+/*Uint32*/
 #define Red_         0xDD0000
 #define Green_       0x00DD00
 #define Blue_        0x0000DD
@@ -64,7 +64,14 @@ typedef struct Sprite_T
 }Sprite;
 
 
-void Init_Graphics();
+void Init_Graphics(
+	char *windowName,
+    int viewWidth,
+    int viewHeight,
+    int renderWidth,
+    int renderHeight,
+    float bgcolor[4],
+    int fullscreen);
 void DrawPixel(SDL_Surface *screen, Uint8 R, Uint8 G, Uint8 B, int x, int y);
 void BlankScreen(SDL_Surface *buf,Uint32 color);
 void SwapSprite(SDL_Surface *sprite,int color1,int color2,int color3);

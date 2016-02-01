@@ -44,22 +44,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Libraries\SDL2_ttf-2.0.12\include;C:\Libraries\SDL2_mixer-2.0.0\include;C:\Libraries\SDL2_image-2.0.0\include;C:\Libraries\SDL2-2.0.3\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\djkehoe\Ironsoft Studios\libs\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ReferencePath>C:\Libraries\SDL2_ttf-2.0.12\lib\x86;C:\Libraries\SDL2_mixer-2.0.0\lib\x86;C:\Libraries\SDL2_image-2.0.0\lib\x86;C:\Libraries\SDL2-2.0.3\lib\x86;$(ReferencePath)</ReferencePath>
-    <LibraryPath>C:\Libraries\SDL2_ttf-2.0.12\lib\x86;C:\Libraries\SDL2_mixer-2.0.0\lib\x86;C:\Libraries\SDL2_image-2.0.0\lib\x86;C:\Libraries\SDL2-2.0.3\lib\x86;$(LibraryPath)</LibraryPath>
-    <OutDir>..</OutDir>
+    <ReferencePath>C:\Users\djkehoe\Ironsoft Studios\libs\lib\x86;$(LibraryPath)</ReferencePath>
+    <LibraryPath>C:\Users\djkehoe\Ironsoft Studios\libs\lib\x86;$(LibraryPath)</LibraryPath>
+    <OutDir>../</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Libraries\SDL2_ttf-2.0.12\include;C:\Libraries\SDL2_mixer-2.0.0\include;C:\Libraries\SDL2_image-2.0.0\include;C:\Libraries\SDL2-2.0.3\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\djkehoe\Ironsoft Studios\libs\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ReferencePath>C:\Libraries\SDL2_ttf-2.0.12\lib\x86;C:\Libraries\SDL2_mixer-2.0.0\lib\x86;C:\Libraries\SDL2_image-2.0.0\lib\x86;C:\Libraries\SDL2-2.0.3\lib\x86;$(ReferencePath)</ReferencePath>
+    <ReferencePath>C:\Users\djkehoe\Ironsoft Studios\libs\lib\x86;$(LibraryPath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LibraryPath>C:\Libraries\SDL2_ttf-2.0.12\lib\x86;C:\Libraries\SDL2_mixer-2.0.0\lib\x86;C:\Libraries\SDL2_image-2.0.0\lib\x86;C:\Libraries\SDL2-2.0.3\lib\x86;$(LibraryPath)</LibraryPath>
-    <OutDir>..</OutDir>
+    <LibraryPath>C:\Users\djkehoe\Ironsoft Studios\libs\lib\x86;$(LibraryPath)</LibraryPath>
+    <OutDir>../</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -67,6 +67,7 @@
       <Optimization>Disabled</Optimization>
       <CompileAs>CompileAsCpp</CompileAs>
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -81,12 +82,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>Default</CompileAs>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

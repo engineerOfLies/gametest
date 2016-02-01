@@ -1,11 +1,12 @@
+#include <string>
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "graphics.h"
 
 #define MaxSprites    255
-#include <string>
-#include "math.h"
+
 struct
 {
 	Uint32 state;

@@ -85,6 +85,8 @@ Sprite *LoadSwappedSprite(char *filename,int sizex, int sizey, int c1, int c2, i
 void DrawSprite(Sprite *sprite,SDL_Surface *surface,int sx,int sy, int frame);
 void CloseSprites();		/*call this before you exit to make sure all the memory that your program used is given back to your OS*/
 
+void gt_graphics_render_surface_to_screen(SDL_Surface *surface,SDL_Rect srcRect,int x,int y);
+
 Uint32 IndexColor(int color);
 void FrameDelay(Uint32 delay);
 void ResetBuffer();

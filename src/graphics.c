@@ -1,4 +1,3 @@
-#include <string>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -15,7 +14,6 @@ struct
 	Uint16  x, y;
 }Mouse;
 
-SDL_Window *window; /*pointer to the window handler */
 SDL_Surface *buffer; /*pointer to the background image buffer*/
 SDL_Surface *videobuffer; /*pointer to the draw buffer*/
 SDL_Rect Camera; /*x & y are the coordinates for the background map, w and h are of the screen*/
@@ -104,7 +102,7 @@ void Init_Graphics(
         printf("failed to create screen texture: %s",SDL_GetError());
         gt_graphics_close();
         return;
-    }
+    };
     
     SDL_PixelFormatEnumToMasks(SDL_PIXELFORMAT_ARGB8888,
                                     &__gt_bitdepth,
@@ -119,7 +117,11 @@ void Init_Graphics(
                                     __gt_gmask,
                                     __gt_bmask,
                                     __gt_amask);
-    
+    buffer = SDL_CreateRGBSurface(0, renderWidth, renderHeight, __gt_bitdepth,
+                                                 __gt_rmask,
+                                                 __gt_gmask,
+                                                 __gt_bmask,
+                                                 __gt_amask);    
     if (!__gt_graphics_surface)
     {
         printf("failed to create screen surface: %s",SDL_GetError());
@@ -128,19 +130,69 @@ void Init_Graphics(
     }
         
     atexit(gt_graphics_close);
-    printf("graphics initialized");
+    printf("graphics initialized\n");
+}
+
+void gt_graphics_render_surface_to_screen(SDL_Surface *surface,SDL_Rect srcRect,int x,int y)
+{
+    SDL_Rect dstRect;
+    SDL_Point point = {1,1};
+    int w,h;
+    if (!__gt_graphics_texture)
+    {
+        printf("gt_graphics_render_surface_to_screen: no texture available");
+        return;
+    }
+    if (!surface)
+    {
+        printf("gt_graphics_render_surface_to_screen: no surface provided");
+        return;
+    }
+    SDL_QueryTexture(__gt_graphics_texture,
+                     NULL,
+                     NULL,
+                     &w,
+                     &h);
+    /*check if resize is needed*/
+    if ((surface->w > w)||(surface->h > h))
+    {
+        SDL_DestroyTexture(__gt_graphics_texture);
+        __gt_graphics_texture = SDL_CreateTexture(__gt_graphics_renderer,
+                                                   __gt_graphics_surface->format->format,
+                                                   SDL_TEXTUREACCESS_STREAMING, 
+                                                   surface->w,
+                                                   surface->h);
+        if (!__gt_graphics_texture)
+        {
+            printf("gt_graphics_render_surface_to_screen: failed to allocate more space for the screen texture!");
+            return;
+        }
+    }
+    SDL_SetTextureBlendMode(__gt_graphics_texture,SDL_BLENDMODE_BLEND);        
+    SDL_UpdateTexture(__gt_graphics_texture,
+                      &srcRect,
+                      surface->pixels,
+                      surface->pitch);
+    dstRect.x = x;
+    dstRect.y = y;
+    dstRect.w = srcRect.w;
+    dstRect.h = srcRect.h;
+    SDL_RenderCopy(__gt_graphics_renderer,
+                     __gt_graphics_texture,
+                     &srcRect,
+                     &dstRect);
 }
 
 
 void ResetBuffer()
 {
-	SDL_RenderPresent(__gt_graphics_renderer);
+    
 }
 
 void NextFrame()
 {
   Uint32 Then;
-  SDL_UpdateWindowSurface(window);				/*update the screen using the videobuffer*/
+  SDL_RenderPresent(__gt_graphics_renderer);
   Then = NOW;									/*these next few lines  are used to show how long each frame takes to update.  */
   NOW = SDL_GetTicks();
 /*  fprintf(stdout,"Ticks passed this frame: %i\n", NOW - Then);*/

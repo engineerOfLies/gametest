@@ -2,7 +2,7 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "graphics.h"
-#include <string>
+#include <string.h>
 
 extern SDL_Surface *screen;
 extern SDL_Surface *buffer; /*pointer to the draw buffer*/
@@ -24,25 +24,28 @@ int main(int argc, char *argv[])
   int tx = 0,ty = 0;
   const Uint8 *keys;
   char imagepath[512];
+  SDL_Rect srcRect={0,0,800,600};
   Init_All();
-  if (getImagePathFromFile(imagepath,"config.ini") == 0)
-  {
-    temp = IMG_Load(imagepath);/*notice that the path is part of the filename*/
-  }
+  temp = IMG_Load("images/bgtest.png");/*notice that the path is part of the filename*/
   if(temp != NULL)
-    SDL_BlitSurface(temp,NULL,buffer,NULL);
+  {
+      printf("temp image loaded successfully\n");
+      SDL_BlitSurface(temp,NULL,buffer,NULL);
+  }
+  gt_graphics_render_surface_to_screen(temp,srcRect,0,0);
   SDL_FreeSurface(temp);
-
   done = 0;
   do
   {
-	fprintf(stdout,"looping...\n");
-    ResetBuffer ();
+    ResetBuffer();
     DrawMouse();
     NextFrame();
     SDL_PumpEvents();
     keys = SDL_GetKeyboardState(NULL);
-    if(keys[SDLK_ESCAPE])done = 1;
+    if(keys[SDL_SCANCODE_ESCAPE])
+    {
+        done = 1;
+    }
   }while(!done);
   exit(0);		/*technically this will end the program, but the compiler likes all functions that can return a value TO return a value*/
   return 0;
@@ -63,7 +66,7 @@ void Init_All()
     400,
     800,
     400,
-	bgcolor,
+    bgcolor,
     0);
 
   InitMouse();

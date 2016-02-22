@@ -8,7 +8,7 @@
 # Object files.
 #
 
-OBJ = game.o graphics.o simple_logger.o vector.o sprite.o entity.o
+OBJECTS = $(patsubst %.c,%.o,$(wildcard *.c))
 
 #
 # Compiler stuff -- adjust to your system.
@@ -16,27 +16,29 @@ OBJ = game.o graphics.o simple_logger.o vector.o sprite.o entity.o
 
 # Linux
 
+PROJECT = gametest
 CC     = gcc
 SDL_CFLAGS = `sdl2-config --cflags`
 SDL_LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_ttf -lSDL2_mixer
-LFLAGS = -g -o ../gametest
+LFLAGS = -g -o ../$(PROJECT)
 CFLAGS = -g -Wall -pedantic
 
 #
 # Targets.
 #
 
-lavos: $(OBJ)
-	gcc $(OBJ) $(LFLAGS) $(SDL_LDFLAGS)
+makefile.dep: depend
+
   
 depend:
+	@touch makefile.dep
 	@-rm makefile.dep
 	@echo Creating dependencies.
 	@for i in *.c; do $(CC) $(INC) -MM $$i; done > makefile.dep
 	@echo Done.
 
 clean:
-	rm *.o gametest
+	rm *.o $(PROJECT)
 
 count:
 	wc *.c *.h makefile
@@ -45,12 +47,7 @@ count:
 # Dependencies.
 #
 
-entity.o:entity.c entity.h sprite.h vector.h
-sprite.o:sprite.c sprite.h vector.h
-vector.o: vector.c vector.h
-simple_logger.o: simple_logger.c simple_logger.h
-graphics.o: graphics.c graphics.h simple_logger.h
-game.o: game.c graphics.h simple_logger.h
+include makefile.dep
 
 #
 # The default rule.

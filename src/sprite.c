@@ -1,7 +1,9 @@
+#include <SDL.h>
 #include <SDL_image.h>
 
 #include "sprite.h"
 #include "simple_logger.h"
+#include "graphics.h"
 
 static Sprite * spriteList = NULL;
 static Uint32 MaxSprites = 0;
@@ -78,6 +80,39 @@ Sprite *loadSprite(char *filename,int frameW,int frameH)
     
     
     return sprite;
+}
+
+void drawSprite(Sprite *sprite,int frame,Vect2d position,SDL_Renderer *renderer)
+{
+    SDL_Rect cell,target;
+    SDL_RendererFlip flipFlags = SDL_FLIP_NONE;
+    SDL_Point r;
+    Vect2d scaleFactor = {1,1};
+    Vect2d scaleOffset = {0,0};
+    if (!sprite)
+    {
+        return;
+    }
+        
+    gt_rect_set(
+        &cell,
+        frame%sprite->framesPerLine * sprite->frameSize.x,
+        frame/sprite->framesPerLine * sprite->frameSize.y,
+        sprite->frameSize.x,
+        sprite->frameSize.y);
+    gt_rect_set(
+        &target,
+        position.x - (scaleFactor.x * scaleOffset.x),
+                 position.y - (scaleFactor.y * scaleOffset.y),
+                 sprite->frameSize.x * scaleFactor.x,
+                 sprite->frameSize.y * scaleFactor.y);
+    SDL_RenderCopyEx(mgl_graphics_get_renderer(),
+                     sprite->texture,
+                     &cell,
+                     &target,
+                     rotation?rotation->z:0,
+                     rotation?&r:NULL,
+                     flipFlags);
 }
 
 void freeSprite(Sprite **sprite)

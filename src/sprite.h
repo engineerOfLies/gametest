@@ -10,7 +10,7 @@ typedef struct
    char filename[120];  /**<name of the image file loaded*/
    SDL_Texture * image;   /**<texture of the image loaded*/
    Vect2d imageSize;     /**<x and y dimensions of the image loaded*/
-   int imageFPL;        /**<how many frames per line in this sprite sheet*/
+   int framesPerLine;        /**<how many frames per line in this sprite sheet*/
    Vect2d frameSize;    /**<the dimensions of a frame in the sprite sheet*/
 }Sprite;
 

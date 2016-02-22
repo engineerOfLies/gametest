@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include "SDL.h"
-#include "SDL_image.h"
+#include <SDL.h>
+#include <SDL_image.h>
 #include "graphics.h"
 #include "simple_logger.h"
+#include "sprite.h"
 
 extern SDL_Surface *screen;
 extern SDL_Surface *buffer; /*pointer to the draw buffer*/
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
   int tx = 0,ty = 0;
   const Uint8 *keys;
   char imagepath[512];
+  Sprite *sprite;
   SDL_Rect srcRect={0,0,800,600};
   Init_All();
   temp = IMG_Load("images/bgtest.png");/*notice that the path is part of the filename*/
@@ -38,9 +40,11 @@ int main(int argc, char *argv[])
   SDL_FreeSurface(temp);
   slog("got here");
   done = 0;
+  sprite = loadSprite("images/32_32_16_2sprite.png",32,32);
   do
   {
     ResetBuffer();
+    drawSprite(sprite,5,vec2d(20,20));
     NextFrame();
     SDL_PumpEvents();
     keys = SDL_GetKeyboardState(NULL);

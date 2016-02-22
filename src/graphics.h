@@ -1,5 +1,5 @@
-#ifndef _GRAPHICS_
-#define _GRAPHICS_
+#ifndef __GRAPHICS_H__
+#define __GRAPHICS_H__
 /*
  *			graphics.h
  *			Originaly written by Donald Kehoe for the NJIT Introduction to game development class
@@ -8,14 +8,14 @@
  */
 
 
-#include "SDL.h"
-#include "SDL_image.h"
-#include "SDL_ttf.h"
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 
 #define MAX(a,b) (a>b?a:b)
 #define MIN(a,b) (a<b?a:b)
 
-#define gt_set_rect(r,a,b,c,d) (r.x=a,r.y=b,r.w=c,r.h=d)
+#define gt_rect_set(r,a,b,c,d) (r.x=a,r.y=b,r.w=c,r.h=d)
 
 void Init_Graphics(
 	char *windowName,

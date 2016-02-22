@@ -9,19 +9,20 @@
  */
 typedef struct Entity_S
 {
-    int     inuse;              /**<flag for tracking resource use*/
-    Vect2d  position;
-    Vect2d  velocity;
-    Sprite *sprite;
-    int     frame;
-    float   health,maxhealth;
-    void    (*draw)(struct Entity_S *self,SDL_Renderer *renderer);
-    int     nextThink; /**<time index for next think*/
-    int     thinkRate; /**<how often to run think*/
-    void    (*think)(struct Entity_S *self); /**<think function for entity*/
-    void    (*update)(struct Entity_S *self);
-    void    (*touch)(struct Entity_S *self, struct Entity_S *other);
-    void    (*free)(struct Entity_S *self); /**<cleanup function called on free*/
+    int      inuse;              /**<flag for tracking resource use*/
+    Vec2d    position;
+    Vec2d    velocity;
+    SDL_Rect bounds;
+    Sprite  *sprite;
+    int      frame;
+    float    health,maxhealth;
+    void     (*draw)(struct Entity_S *self,SDL_Renderer *renderer);
+    int      nextThink; /**<time index for next think*/
+    int      thinkRate; /**<how often to run think*/
+    void     (*think)(struct Entity_S *self); /**<think function for entity*/
+    void     (*update)(struct Entity_S *self);
+    void     (*touch)(struct Entity_S *self, struct Entity_S *other);
+    void     (*free)(struct Entity_S *self); /**<cleanup function called on free*/
 }Entity;
 
 
@@ -38,6 +39,7 @@ void entity_initialization(Uint32 maxEntities);
 Entity *entity_new();
 
 void entity_free(Entity **entity);
+
 
 void entity_think_all();
 void entity_update_all();

@@ -21,14 +21,14 @@ CC     = gcc
 SDL_CFLAGS = `sdl2-config --cflags`
 SDL_LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 LFLAGS = -g -o ../$(PROJECT)
-CFLAGS = -g -Wall -pedantic
+CFLAGS = -g -Wall -pedantic -Wno-variadic-macros
 
 #
 # Targets.
 #
 
-makefile.dep: depend
-
+$(PROJECT):$(OBJECTS)
+	$(CC) $(OBJECTS) $(LFLAGS) $(SDL_LDFLAGS) $(GLIB_LDFLAGS) $(MGL_LDFLAGS)
   
 depend:
 	@touch makefile.dep

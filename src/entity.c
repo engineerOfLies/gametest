@@ -6,6 +6,7 @@ static Uint32 MaxEntities = 0;
 
 
 void closeEntitySystem();
+int entity_interset(Entity *a, Entity *b);
 
 void initEntitySystem(int maxEntities)
 {
@@ -103,6 +104,50 @@ void entity_update_all()
         
         EntityList[i].update(&EntityList[i]);
     }
+}
+
+Entity *entity_intesect_all(Entity *a)
+{
+    int i;
+    if (!a)return NULL;
+    for (i = 0; i < MaxEntities;i++)
+    {
+        if (!EntityList[i].inuse)
+        {
+            continue;
+        }
+        if (a == &EntityList[i])
+        {
+            continue;
+            /*don't clip self*/
+        }
+        if (entity_intersect(a, &EntityList[i]))
+        {
+            return &EntityList[i];
+        }
+    }
+    return NULL;
+}
+
+int entity_intersect(Entity *a, Entity *b)
+{
+    SDL_Rect aB,bB;
+    if ((!a) || (!b))
+    {
+        slog("ERROR: Missing entity for check");
+        return 0;
+    }
+    aB = rect(
+        a->position.x + a->bounds.x,
+        a->position.y + a->bounds.y,
+        a->bounds.w,
+        a->bounds.h);
+    bB = rect(
+        b->position.x + b->bounds.x,
+        b->position.y + b->bounds.y,
+        b->bounds.w,
+        b->bounds.h);
+    return rect_intersect(aB,bB);
 }
 
 /*eol@eof*/

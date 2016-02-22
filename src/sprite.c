@@ -82,36 +82,35 @@ Sprite *loadSprite(char *filename,int frameW,int frameH)
     return sprite;
 }
 
-void drawSprite(Sprite *sprite,int frame,Vect2d position,SDL_Renderer *renderer)
+void drawSprite(Sprite *sprite,int frame,Vec2d position)
 {
     SDL_Rect cell,target;
     SDL_RendererFlip flipFlags = SDL_FLIP_NONE;
-    SDL_Point r;
-    Vect2d scaleFactor = {1,1};
-    Vect2d scaleOffset = {0,0};
+    Vec2d scaleFactor = {1,1};
+    Vec2d scaleOffset = {0,0};
     if (!sprite)
     {
         return;
     }
         
     gt_rect_set(
-        &cell,
+        cell,
         frame%sprite->framesPerLine * sprite->frameSize.x,
         frame/sprite->framesPerLine * sprite->frameSize.y,
         sprite->frameSize.x,
         sprite->frameSize.y);
     gt_rect_set(
-        &target,
+        target,
         position.x - (scaleFactor.x * scaleOffset.x),
                  position.y - (scaleFactor.y * scaleOffset.y),
                  sprite->frameSize.x * scaleFactor.x,
                  sprite->frameSize.y * scaleFactor.y);
-    SDL_RenderCopyEx(mgl_graphics_get_renderer(),
-                     sprite->texture,
+    SDL_RenderCopyEx(gt_graphics_get_active_renderer(),
+                     sprite->image,
                      &cell,
                      &target,
-                     rotation?rotation->z:0,
-                     rotation?&r:NULL,
+                     0,
+                     NULL,
                      flipFlags);
 }
 

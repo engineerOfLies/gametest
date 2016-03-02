@@ -10,10 +10,12 @@
 typedef struct Entity_S
 {
     int      inuse;              /**<flag for tracking resource use*/
+    char     name[128];
     Vec2d    position;
     Vec2d    velocity;
     SDL_Rect bounds;
     Sprite  *sprite;
+    int      cameraEnt;         /**<true if the entity is drawn relative to the camera*/
     int      frame;
     float    health,maxhealth;
     void     (*draw)(struct Entity_S *self,SDL_Renderer *renderer);

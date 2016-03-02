@@ -6,7 +6,8 @@ static Uint32 MaxEntities = 0;
 
 
 void closeEntitySystem();
-int entity_interset(Entity *a, Entity *b);
+int entity_intersect(Entity *a, Entity *b);
+int entity_intersect_rect(Entity *a,SDL_Rect r);
 
 void initEntitySystem(int maxEntities)
 {
@@ -64,6 +65,47 @@ void entity_free(Entity **entity)
     self = *entity;
     freeSprite(&self->sprite);
     *entity = NULL;
+}
+
+void entity_draw(Entity *ent,SDL_Renderer *render)
+{
+    Vec2d position;
+    SDL_Rect camera;
+    if ((!ent)||(!render))
+    {
+        slog("error: no entity or renderer passed");
+        return;
+    }
+    if (!ent->sprite)
+    {
+        slog("error: entity %s has no sprite!",ent->name);
+        return;
+    }
+    camera = camera_get_active_camera();
+    if (!entity_intersect_rect(ent,camera))
+    {
+        return;
+    }
+    if (ent->cameraEnt)
+    {
+        position.x = ent->position.x - camera.x;
+        position.y = ent->position.y - camera.y;
+    }
+    drawSprite(ent->sprite,ent->frame,position);
+}
+
+void entity_draw_all()
+{
+    int i;
+    for (i = 0; i < MaxEntities;i++)
+    {
+        if (!EntityList[i].inuse)
+        {
+            continue;
+        }
+        
+        
+    }
 }
 
 void entity_think_all()
@@ -127,6 +169,22 @@ Entity *entity_intesect_all(Entity *a)
         }
     }
     return NULL;
+}
+
+int entity_intersect_rect(Entity *a,SDL_Rect r)
+{
+    SDL_Rect aB;
+    if (!a)
+    {
+        slog("ERROR: Missing entity for check");
+        return 0;
+    }
+    aB = rect(
+        a->position.x + a->bounds.x,
+        a->position.y + a->bounds.y,
+        a->bounds.w,
+        a->bounds.h);
+    return rect_intersect(aB,r);
 }
 
 int entity_intersect(Entity *a, Entity *b)
